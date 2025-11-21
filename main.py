@@ -155,7 +155,7 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
     logging.info("Create depth texture...")
     depth_texture = device.create_texture(
         label="DEPTH_TEXTURE",
-        size=tuple(*canvas.get_physical_size(), 1),
+        size=(*canvas.get_physical_size(), 1),
         format=wgpu.TextureFormat.depth24plus,
         usage=wgpu.TextureUsage.RENDER_ATTACHMENT,
     )
@@ -235,7 +235,7 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
 
         # Combine mvp:
         mvp = projection * view * model
-        mvp_array = np.array(mvp, dtype=np.float32)
+        mvp_array = np.ascontiguousarray(mvp, dtype=np.float32)
         device.queue.write_buffer(uniform_buffer, 0, mvp_array)
         
         # Rendering:
