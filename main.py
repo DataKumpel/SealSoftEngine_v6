@@ -30,43 +30,43 @@ def create_cube_data() -> tuple[np.ndarray, np.ndarray]:
         [-0.5,  0.5, 0.5, 1.0, 0.0, 0.0],
 
         # Back face (GREEN)
-        [-0.5, -0.5, -0.5, 0.0, 1.0, 0.0],
         [ 0.5, -0.5, -0.5, 0.0, 1.0, 0.0],
-        [ 0.5,  0.5, -0.5, 0.0, 1.0, 0.0],
+        [-0.5, -0.5, -0.5, 0.0, 1.0, 0.0],
         [-0.5,  0.5, -0.5, 0.0, 1.0, 0.0],
+        [ 0.5,  0.5, -0.5, 0.0, 1.0, 0.0],
 
         # Top face (BLUE)
-        [-0.5,  0.5, -0.5, 0.0, 0.0, 1.0],
         [-0.5,  0.5,  0.5, 0.0, 0.0, 1.0],
         [ 0.5,  0.5,  0.5, 0.0, 0.0, 1.0],
         [ 0.5,  0.5, -0.5, 0.0, 0.0, 1.0],
+        [-0.5,  0.5, -0.5, 0.0, 0.0, 1.0],
 
         # Bottom face (YELLOW)
         [-0.5, -0.5, -0.5, 1.0, 1.0, 0.0],
-        [-0.5, -0.5,  0.5, 1.0, 1.0, 0.0],
-        [ 0.5, -0.5,  0.5, 1.0, 1.0, 0.0],
         [ 0.5, -0.5, -0.5, 1.0, 1.0, 0.0],
+        [ 0.5, -0.5,  0.5, 1.0, 1.0, 0.0],
+        [-0.5, -0.5,  0.5, 1.0, 1.0, 0.0],
 
         # Right face (MAGENTA)
+        [ 0.5, -0.5,  0.5, 1.0, 0.0, 1.0],
         [ 0.5, -0.5, -0.5, 1.0, 0.0, 1.0],
         [ 0.5,  0.5, -0.5, 1.0, 0.0, 1.0],
         [ 0.5,  0.5,  0.5, 1.0, 0.0, 1.0],
-        [ 0.5, -0.5,  0.5, 1.0, 0.0, 1.0],
 
         # Left face (CYAN)
         [-0.5, -0.5, -0.5, 0.0, 1.0, 1.0],
-        [-0.5,  0.5, -0.5, 0.0, 1.0, 1.0],
-        [-0.5,  0.5,  0.5, 0.0, 1.0, 1.0],
         [-0.5, -0.5,  0.5, 0.0, 1.0, 1.0],
+        [-0.5,  0.5,  0.5, 0.0, 1.0, 1.0],
+        [-0.5,  0.5, -0.5, 0.0, 1.0, 1.0],
     ], dtype=np.float32)
 
     indices = np.array([
          0,  1,  2,  2,  3,  0,  # Front
-         4,  6,  5,  6,  4,  7,  # Back
+         4,  5,  6,  6,  7,  4,  # Back
          8,  9, 10, 10, 11,  8,  # Top
-        12, 14, 13, 14, 12, 15,  # Bottom
+        12, 13, 14, 14, 15, 12,  # Bottom
         16, 17, 18, 18, 19, 16,  # Right
-        20, 22, 21, 22, 20, 23,  # Left
+        20, 21, 22, 22, 23, 20,  # Left
     ], dtype=np.uint32)
 
     return vertices, indices
@@ -152,14 +152,14 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
         depth_compare=wgpu.CompareFunction.less,
     )
 
-    logging.info("Create depth texture...")
-    depth_texture = device.create_texture(
-        label="DEPTH_TEXTURE",
-        size=(*canvas.get_physical_size(), 1),
-        format=wgpu.TextureFormat.depth24plus,
-        usage=wgpu.TextureUsage.RENDER_ATTACHMENT,
-    )
-    depth_view = depth_texture.create_view()
+    # logging.info("Create depth texture...")
+    # depth_texture = device.create_texture(
+    #     label="DEPTH_TEXTURE",
+    #     size=(*canvas.get_physical_size(), 1),
+    #     format=wgpu.TextureFormat.depth24plus,
+    #     usage=wgpu.TextureUsage.RENDER_ATTACHMENT,
+    # )
+    # depth_view = depth_texture.create_view()
 
     logging.info("Create render pipeline...")
     vertex_config = wgpu.VertexState(
@@ -187,7 +187,7 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
     primitive_config = wgpu.PrimitiveState(
         topology=wgpu.PrimitiveTopology.triangle_list,
         front_face=wgpu.FrontFace.ccw,
-        cull_mode=wgpu.CullMode.back,
+        cull_mode=wgpu.CullMode.none,
     )
     fragment_config = wgpu.FragmentState(
         module=shader,
@@ -204,7 +204,7 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
         layout=pipeline_layout,
         vertex=vertex_config,
         primitive=primitive_config,
-        depth_stencil=None,
+        depth_stencil=depth_stencil,
         multisample=None,
         fragment=fragment_config,
     )
@@ -216,6 +216,17 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
     def draw_frame():
         current_time = time.time() - start_time
 
+        # Current canvas size:
+        width, height = canvas.get_physical_size()
+
+        depth_texture = device.create_texture(
+            label="DEPTH_TEXTURE",
+            size=(width, height, 1),
+            format=wgpu.TextureFormat.depth24plus,
+            usage=wgpu.TextureUsage.RENDER_ATTACHMENT,
+        )
+        depth_view = depth_texture.create_view()
+
         # Model matrix with rotation around y and x axis:
         model = glm.mat4(1.0)
         model = glm.rotate(model, current_time * 0.5, glm.vec3(0, 1, 0))
@@ -223,13 +234,12 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
 
         # View matrix:
         view = glm.lookAt(
-            glm.vec3(0, 0, 3),
+            glm.vec3(0, 0, 5),
             glm.vec3(0, 0, 0),
             glm.vec3(0, 1, 0),
         )
 
         # Projection matrix:
-        width, height = canvas.get_physical_size()
         aspect_ratio = width / height
         projection = glm.perspective(glm.radians(66.0), aspect_ratio, 0.1, 100.0)
 
