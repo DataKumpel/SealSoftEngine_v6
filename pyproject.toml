@@ -6,6 +6,9 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "glfw>=2.10.0",
+    "glm>=0.4.4",
+    "numpy>=2.3.5",
+    "pyglm>=2.8.2",
     "wgpu>=0.28.1",
 ]
 
