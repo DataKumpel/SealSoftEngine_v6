@@ -71,24 +71,6 @@ def create_cube_data() -> tuple[np.ndarray, np.ndarray]:
 
     return vertices, indices
 
-def perspective_wgpu(fovy: float, aspect: float, near: float, far: float) -> glm.mat4:
-    """
-    Create a perspective matrix for web-GPU (depth range: 0 to 1).
-    It corrects the behaviour of `glm.perspective()`, which was designed for OpenGL, which supports
-    a depth range from -1 to 1. 
-    """
-
-    f = 1.0 / np.tan(fovy / 2.0)
-    nf = 1.0 / (near - far)
-
-    return glm.mat4(
-        f / aspect, 0.0     ,  0.0           ,  0.0,
-        0.0       , f       ,  0.0           ,  0.0,
-        0.0       , 0.0     , far * nf       , -1.0,
-        0.0       , 0.0     , near * far * nf,  0.0,
-    )
-
-
 def setup_drawing_sync(canvas: BaseRenderCanvas):
     logging.info("Requesting adapter and device...")
     adapter = wgpu.gpu.request_adapter_sync(power_preference="high-performance")
