@@ -17,17 +17,23 @@ class Renderer:
         # Pipeline configurations:
         self.vb_layout = self._create_vb_layout()
         self.vertex_config = self._create_vertex_config()
+        self.primitive_config = self._create_primitive_config()
+        self.fragment_config = self._create_fragment_config()
 
         self.pipeline = self._create_pipeline()
 
-    def _compile_shader(self, shader_path: str):
+    def _compile_shader(self, shader_path: str) -> wgpu.GPUShaderModule:
         code = Path(shader_path).read_text()
         return self.ctx.device.create_shader_module(label="SHADER", code=code)
 
-    def _create_vertex_config(self):
-        ...
+    def _create_vertex_config(self) -> wgpu.VertexState:
+        return wgpu.VertexState(
+            module=self.shader,
+            entry_point="vs_main",
+            buffers=[self.vb_layout],
+        )
 
-    def _create_vb_layout(self):
+    def _create_vb_layout(self) -> wgpu.VertexBufferLayout:
         position_attrib = wgpu.VertexAttribute(
             format=wgpu.VertexFormat.float32x3,
             offset=0,
@@ -42,10 +48,22 @@ class Renderer:
         return wgpu.VertexBufferLayout(
             array_stride=24,  # 6 floats * 4 bytes
             step_mode=wgpu.VertexStepMode.vertex,
-            attributes=[
-                position_attrib,
-                color_attrib,
-            ],
+            attributes=[position_attrib, color_attrib],
+        )
+    
+    def _create_primitive_config(self):
+        # The default config is just fine :)
+        return wgpu.PrimitiveState()
+    
+    def _create_fragment_config(self):
+        color_target = wgpu.ColorTargetState(
+            format=self.ctx.render_format,
+            blend=wgpu.BlendState(color={}, alpha={}),
+        )
+        return wgpu.FragmentState(
+            module=self.shader,
+            entry_point="fs_main",
+            targets=[color_target],
         )
 
     def _create_depth_stencil(self) -> wgpu.DepthStencilState:
@@ -76,9 +94,9 @@ class Renderer:
         return self.ctx.device.create_render_pipeline(
             label="RENDER_PIPELINE",
             layout=pipeline_layout,
-            vertex=vertex_config,
-            primitive=primitive_config,
+            vertex=self.vertex_config,
+            primitive=self.primitive_config,
             depth_stencil=self.depth_stencil,
             multisample=None,
-            fragment=fragment_config,
+            fragment=self.fragment_config,
         )
