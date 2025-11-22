@@ -24,40 +24,40 @@ def load_shader(path: str) -> str:
 def create_cube_data() -> tuple[np.ndarray, np.ndarray]:
     vertices = np.array([
         # Front face (RED)
-        [-0.5, -0.5, 0.5, 1.0, 0.0, 0.0],
-        [ 0.5, -0.5, 0.5, 1.0, 0.0, 0.0],
-        [ 0.5,  0.5, 0.5, 1.0, 0.0, 0.0],
-        [-0.5,  0.5, 0.5, 1.0, 0.0, 0.0],
+        [-0.5, -0.5, 0.5, 1.0, 0.0, 0.0], # 0
+        [ 0.5, -0.5, 0.5, 1.0, 0.0, 0.0], # 1
+        [ 0.5,  0.5, 0.5, 1.0, 0.0, 0.0], # 2
+        [-0.5,  0.5, 0.5, 1.0, 0.0, 0.0], # 3
 
         # Back face (GREEN)
-        [ 0.5, -0.5, -0.5, 0.0, 1.0, 0.0],
-        [-0.5, -0.5, -0.5, 0.0, 1.0, 0.0],
-        [-0.5,  0.5, -0.5, 0.0, 1.0, 0.0],
-        [ 0.5,  0.5, -0.5, 0.0, 1.0, 0.0],
+        [ 0.5, -0.5, -0.5, 0.0, 1.0, 0.0], # 4
+        [-0.5, -0.5, -0.5, 0.0, 1.0, 0.0], # 5
+        [-0.5,  0.5, -0.5, 0.0, 1.0, 0.0], # 6
+        [ 0.5,  0.5, -0.5, 0.0, 1.0, 0.0], # 7
 
         # Top face (BLUE)
-        [-0.5,  0.5,  0.5, 0.0, 0.0, 1.0],
-        [ 0.5,  0.5,  0.5, 0.0, 0.0, 1.0],
-        [ 0.5,  0.5, -0.5, 0.0, 0.0, 1.0],
-        [-0.5,  0.5, -0.5, 0.0, 0.0, 1.0],
+        [-0.5,  0.5,  0.5, 0.0, 0.0, 1.0], # 8
+        [ 0.5,  0.5,  0.5, 0.0, 0.0, 1.0], # 9
+        [ 0.5,  0.5, -0.5, 0.0, 0.0, 1.0], # 10
+        [-0.5,  0.5, -0.5, 0.0, 0.0, 1.0], # 11
 
         # Bottom face (YELLOW)
-        [-0.5, -0.5, -0.5, 1.0, 1.0, 0.0],
-        [ 0.5, -0.5, -0.5, 1.0, 1.0, 0.0],
-        [ 0.5, -0.5,  0.5, 1.0, 1.0, 0.0],
-        [-0.5, -0.5,  0.5, 1.0, 1.0, 0.0],
+        [-0.5, -0.5, -0.5, 1.0, 1.0, 0.0], # 12
+        [ 0.5, -0.5, -0.5, 1.0, 1.0, 0.0], # 13
+        [ 0.5, -0.5,  0.5, 1.0, 1.0, 0.0], # 14
+        [-0.5, -0.5,  0.5, 1.0, 1.0, 0.0], # 15
 
         # Right face (MAGENTA)
-        [ 0.5, -0.5,  0.5, 1.0, 0.0, 1.0],
-        [ 0.5, -0.5, -0.5, 1.0, 0.0, 1.0],
-        [ 0.5,  0.5, -0.5, 1.0, 0.0, 1.0],
-        [ 0.5,  0.5,  0.5, 1.0, 0.0, 1.0],
+        [ 0.5, -0.5,  0.5, 1.0, 0.0, 1.0], # 16
+        [ 0.5, -0.5, -0.5, 1.0, 0.0, 1.0], # 17
+        [ 0.5,  0.5, -0.5, 1.0, 0.0, 1.0], # 18
+        [ 0.5,  0.5,  0.5, 1.0, 0.0, 1.0], # 19
 
         # Left face (CYAN)
-        [-0.5, -0.5, -0.5, 0.0, 1.0, 1.0],
-        [-0.5, -0.5,  0.5, 0.0, 1.0, 1.0],
-        [-0.5,  0.5,  0.5, 0.0, 1.0, 1.0],
-        [-0.5,  0.5, -0.5, 0.0, 1.0, 1.0],
+        [-0.5, -0.5, -0.5, 0.0, 1.0, 1.0], # 20
+        [-0.5, -0.5,  0.5, 0.0, 1.0, 1.0], # 21
+        [-0.5,  0.5,  0.5, 0.0, 1.0, 1.0], # 22
+        [-0.5,  0.5, -0.5, 0.0, 1.0, 1.0], # 23
     ], dtype=np.float32)
 
     indices = np.array([
@@ -70,6 +70,24 @@ def create_cube_data() -> tuple[np.ndarray, np.ndarray]:
     ], dtype=np.uint32)
 
     return vertices, indices
+
+def perspective_wgpu(fovy: float, aspect: float, near: float, far: float) -> glm.mat4:
+    """
+    Create a perspective matrix for web-GPU (depth range: 0 to 1).
+    It corrects the behaviour of `glm.perspective()`, which was designed for OpenGL, which supports
+    a depth range from -1 to 1. 
+    """
+
+    f = 1.0 / np.tan(fovy / 2.0)
+    nf = 1.0 / (near - far)
+
+    return glm.mat4(
+        f / aspect, 0.0     ,  0.0           ,  0.0,
+        0.0       , f       ,  0.0           ,  0.0,
+        0.0       , 0.0     , far * nf       , -1.0,
+        0.0       , 0.0     , near * far * nf,  0.0,
+    )
+
 
 def setup_drawing_sync(canvas: BaseRenderCanvas):
     logging.info("Requesting adapter and device...")
@@ -244,7 +262,9 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
         projection = glm.perspective(glm.radians(66.0), aspect_ratio, 0.1, 100.0)
 
         # Combine mvp:
-        mvp = projection * view * model
+        # REM: We need transposition, because the buffer reads in row-major-order, but glm matrices
+        #      are column-major-order. This fixes distorted vertices!
+        mvp = glm.transpose(projection * view * model)
         mvp_array = np.ascontiguousarray(mvp, dtype=np.float32)
         device.queue.write_buffer(uniform_buffer, 0, mvp_array)
         
@@ -258,7 +278,7 @@ def setup_drawing_sync(canvas: BaseRenderCanvas):
                 wgpu.RenderPassColorAttachment(
                     view=current_texture.create_view(),
                     resolve_target=None,
-                    clear_value=(0.1, 0.1, 0.1, 1.0),
+                    clear_value=(0.0, 0.0, 0.0, 1.0),
                     load_op=wgpu.LoadOp.clear,
                     store_op=wgpu.StoreOp.store,
                 ),
