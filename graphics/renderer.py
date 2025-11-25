@@ -6,7 +6,12 @@ from .context import GraphicsContext
 class Renderer:
     def __init__(self, ctx: GraphicsContext):
         self.ctx = ctx
+
+        # Depth Texture and stencil:
         self.depth_stencil = self._create_depth_stencil()
+        self.depth_format = wgpu.TextureFormat.depth24plus
+        self.depth_texture: wgpu.GPUTexture = None
+        self.depth_view = None
 
         # Bind Group Layouts:
         self.global_bgl = self._create_global_layout()
@@ -21,6 +26,55 @@ class Renderer:
         self.fragment_config = self._create_fragment_config()
 
         self.pipeline = self._create_pipeline()
+    
+    def render(self, scene) -> None:
+        current_texture: wgpu.GPUTexture = self.ctx.present_context.get_current_texture()
+        command_encoder = self.ctx.device.create_command_encoder(label="COMMAND_ENCODER")
+
+        width, height, _ = current_texture.size
+        self._update_depth_buffer(width, height)
+
+        render_pass = command_encoder.begin_render_pass(
+            label="RENDER_PASS",
+            color_attachments=[
+                wgpu.RenderPassColorAttachment(
+                    view=current_texture.create_view(),
+                    load_op=wgpu.LoadOp.clear,
+                    store_op=wgpu.StoreOp.store,
+                    clear_value=(0.0, 0.0, 0.0, 1.0),
+                )
+            ],
+            depth_stencil_attachment=wgpu.RenderPassDepthStencilAttachment(
+                view=self.depth_view,
+                depth_clear_value=1.0,
+                depth_load_op=wgpu.LoadOp.clear,
+                depth_store_op=wgpu.StoreOp.store,
+            )
+        )
+        render_pass.set_pipeline(self.pipeline)
+
+        # TODO: Iterate over all objects of a scene and draw them.
+        # for obj in scene.objects:
+        #     obj.draw(render_pass)
+
+        render_pass.end()
+        self.ctx.device.queue.submit([command_encoder.finish(label="DRAW_COMMAND")])
+
+    def _update_depth_buffer(self, width: int, height: int) -> None:
+        # Depth buffer has to be always the size of the screen, otherwise
+        # wgpu crashes...
+        if self.depth_texture and self.depth_texture.size == (width, height, 1):
+            return
+        
+        print(f"Recreating depth buffer: {width}x{height}")
+
+        self.depth_texture = self.ctx.device.create_texture(
+            label="DEPTH_TEXTURE",
+            size=(width, height, 1),
+            usage=wgpu.TextureUsage.RENDER_ATTACHMENT,
+            format=self.depth_format,
+        )
+        self.depth_view = self.depth_texture.create_view()
 
     def _compile_shader(self, shader_path: str) -> wgpu.GPUShaderModule:
         code = Path(shader_path).read_text()
@@ -68,7 +122,7 @@ class Renderer:
 
     def _create_depth_stencil(self) -> wgpu.DepthStencilState:
         return wgpu.DepthStencilState(
-            format=wgpu.TextureFormat.depth24plus,
+            format=self.depth_format,
             depth_write_enabled=True,
             depth_compare=wgpu.CompareFunction.less,
         )
