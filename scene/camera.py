@@ -1,7 +1,7 @@
 import glm
 
 class Camera:
-    def __init__(self, position: glm.vec3, width: int, height: int) -> None:
+    def __init__(self, position: glm.vec3, aspect: float) -> None:
         self.position = position
         self.front = glm.vec3(0, 0, -1)
         self.up = glm.vec3(0, 1, 0)
@@ -10,7 +10,7 @@ class Camera:
         self.fovy = 60.0
         self.clip_near = 0.1
         self.clip_far = 100.0
-        self.aspect = width / height
+        self.aspect = aspect
 
     def get_view_matrix(self) -> glm.mat4x4:
         return glm.lookAt(self.position, self.front, self.up)
