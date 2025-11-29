@@ -1,5 +1,6 @@
 import glm
 import wgpu
+import numpy as np
 from graphics.renderer import Renderer
 
 class Camera:
@@ -20,7 +21,7 @@ class Camera:
         self.aspect = aspect
 
     def get_view_matrix(self) -> glm.mat4x4:
-        return glm.lookAt(self.position, self.front, self.up)
+        return glm.lookAt(self.position, self.position + self.front, self.up)
     
     def get_projection_matrix(self) -> glm.mat4x4:
         return glm.perspective(glm.radians(self.fovy), self.aspect, self.clip_near, self.clip_far)
@@ -38,8 +39,12 @@ class Camera:
         self.front = glm.normalize(front)
 
     def update(self):
-        view_proj_data = self.get_view_matrix() + self.get_projection_matrix()
-        self.device.queue.write_buffer(self.uniform_buffer, 0, view_proj_data)
+        view = self.get_view_matrix()
+        proj = self.get_projection_matrix()
+
+        view_proj_data: np.ndarray = np.array([view, proj], dtype=np.float32)
+        
+        self.device.queue.write_buffer(self.uniform_buffer, 0, view_proj_data.tobytes())
 
     def _create_uniform_buffer(self) -> wgpu.GPUBuffer:
         return self.device.create_buffer(
