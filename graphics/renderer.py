@@ -15,6 +15,7 @@ class Renderer:
 
         # Bind Group Layouts:
         self.global_bgl = self._create_global_layout()
+        self.object_bgl = self._create_object_layout()
 
         # Compile shader:
         self.shader = self._compile_shader("shader.wgsl")
@@ -138,11 +139,23 @@ class Renderer:
                 ),
             ],
         )
+
+    def _create_object_layout(self) -> wgpu.GPUBindGroupLayout:
+        return self.ctx.device.create_bind_group_layout(
+            label="OBJECT_BIND_GROUP_LAYOUT",
+            entries=[
+                wgpu.BindGroupLayoutEntry(
+                    binding=0,
+                    visibility=wgpu.ShaderStage.VERTEX,
+                    buffer=wgpu.BufferBindingLayout(),
+                ),
+            ],
+        )
     
     def _create_pipeline(self) -> wgpu.GPURenderPipeline:
         pipeline_layout = self.ctx.device.create_pipeline_layout(
             label="PIPELINE_LAYOUT",
-            bind_group_layouts=[self.global_bgl],
+            bind_group_layouts=[self.global_bgl, self.object_bgl],
         )
         
         return self.ctx.device.create_render_pipeline(
