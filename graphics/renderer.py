@@ -11,7 +11,7 @@ class Renderer:
         self.depth_format = wgpu.TextureFormat.depth24plus
         self.depth_stencil = self._create_depth_stencil()
         self.depth_texture: wgpu.GPUTexture = None
-        self.depth_view = None
+        self.depth_view: wgpu.GPUTexture = None
 
         # Bind Group Layouts:
         self.global_bgl = self._create_global_layout()
