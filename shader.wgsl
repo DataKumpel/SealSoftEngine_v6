@@ -1,6 +1,22 @@
 //***** UNIFORMS ***********************************************************************************
+
+// GROUP 0: Global Data (Camera)
+struct CameraUniform {
+    view: mat4x4<f32>,
+    proj: mat4x4<f32>,
+};
+
 @group(0) @binding(0)
-var<uniform> mvp: mat4x4<f32>;
+var<uniform> camera: CameraUniform;
+
+// GROUP 1: Object Data (position and rotation of an object)
+struct ModelUniform {
+    matrix: mat4x4<f32>,
+};
+
+@group(1) @binding(0)
+var<uniform> model: ModelUniform;
+
 //***** UNIFORMS ***********************************************************************************
 
 //***** STRUCTURES *********************************************************************************
@@ -20,8 +36,9 @@ struct VertexOutput {
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-    
-    out.pos = mvp * vec4<f32>(in.position, 1.0);
+
+    // MVP * pos = PROJ * VIEW * MODEL * POSITION
+    out.pos = camera.proj * camera.view * model.matrix * vec4<f32>(in.position, 1.0);
     out.color = in.color;
 
     return out;
