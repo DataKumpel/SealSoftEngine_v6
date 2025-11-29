@@ -1,4 +1,4 @@
-from wgpu.gui.auto import WgpuCanvas, run
+from rendercanvas.auto import RenderCanvas, loop
 from graphics.context import GraphicsContext
 from graphics.renderer import Renderer
 from scene.camera import Camera
@@ -6,7 +6,7 @@ import glm
 
 class GameEngine:
     def __init__(self) -> None:
-        self.canvas = WgpuCanvas(title="SealSoftEngine v6")
+        self.canvas = RenderCanvas(title="SealSoftEngine v6")
         self.ctx = GraphicsContext(self.canvas)
         self.renderer = Renderer(self.ctx)
 
@@ -30,5 +30,5 @@ class GameEngine:
         self.canvas.request_draw()
 
     def run(self):
-        run()
+        loop.run()
     
