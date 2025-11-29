@@ -11,7 +11,9 @@ class GameEngine:
         self.renderer = Renderer(self.ctx)
 
         # Game state:
-        self.camera = Camera(position=glm.vec3(0, 0, 5), aspect=self.ctx.aspect_ratio)
+        self.camera = Camera(renderer=self.renderer, 
+                             position=glm.vec3(0, 0, 5), 
+                             aspect=self.ctx.aspect_ratio)
 
         self.canvas.request_draw(self.gameloop)
     

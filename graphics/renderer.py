@@ -8,8 +8,8 @@ class Renderer:
         self.ctx = ctx
 
         # Depth Texture and stencil:
-        self.depth_stencil = self._create_depth_stencil()
         self.depth_format = wgpu.TextureFormat.depth24plus
+        self.depth_stencil = self._create_depth_stencil()
         self.depth_texture: wgpu.GPUTexture = None
         self.depth_view = None
 
