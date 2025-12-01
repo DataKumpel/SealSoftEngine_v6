@@ -6,7 +6,7 @@ import glm
 
 class GameEngine:
     def __init__(self) -> None:
-        self.canvas = RenderCanvas(title="SealSoftEngine v6")
+        self.canvas = RenderCanvas(title="🦭 SealSoftEngine v6", size=(800, 600), vsync=False)
         self.ctx = GraphicsContext(self.canvas)
         self.renderer = Renderer(self.ctx)
 
