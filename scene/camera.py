@@ -1,10 +1,10 @@
 import glm
 import wgpu
 import numpy as np
-from graphics.renderer import Renderer
+#from graphics.renderer import Renderer
 
 class Camera:
-    def __init__(self, renderer: Renderer, position: glm.vec3, aspect: float) -> None:
+    def __init__(self, renderer, position: glm.vec3, aspect: float) -> None:
         self.renderer = renderer
         self.device = renderer.ctx.device
         self.uniform_buffer = self._create_uniform_buffer()
