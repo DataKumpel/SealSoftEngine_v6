@@ -1,6 +1,7 @@
 import wgpu
 from pathlib import Path
 from .context import GraphicsContext
+from scene.scene import Scene
 
 
 class Renderer:
@@ -28,7 +29,7 @@ class Renderer:
 
         self.pipeline = self._create_pipeline()
     
-    def render(self, scene) -> None:
+    def render(self, scene: Scene) -> None:
         current_texture: wgpu.GPUTexture = self.ctx.present_context.get_current_texture()
         command_encoder = self.ctx.device.create_command_encoder(label="COMMAND_ENCODER")
 
@@ -54,9 +55,12 @@ class Renderer:
         )
         render_pass.set_pipeline(self.pipeline)
 
-        # TODO: Iterate over all objects of a scene and draw them.
-        # for obj in scene.objects:
-        #     obj.draw(render_pass)
+        # Set Camera for ALL objects:
+        render_pass.set_bind_group(0, scene.camera.bind_group, [], 0, 99)
+
+        # Iterate over all objects of a scene and draw them.
+        for entity in scene.entities:
+            entity.draw(render_pass)
 
         render_pass.end()
         self.ctx.device.queue.submit([command_encoder.finish(label="DRAW_COMMAND")])
