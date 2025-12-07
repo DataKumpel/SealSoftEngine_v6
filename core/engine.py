@@ -2,6 +2,7 @@ from rendercanvas.auto import RenderCanvas, loop
 from graphics.context import GraphicsContext
 from graphics.renderer import Renderer
 from scene.camera import Camera
+from scene.scene import Scene
 import glm
 
 class GameEngine:
@@ -9,12 +10,7 @@ class GameEngine:
         self.canvas = RenderCanvas(title="🦭 SealSoftEngine v6", size=(800, 600), vsync=False)
         self.ctx = GraphicsContext(self.canvas)
         self.renderer = Renderer(self.ctx)
-
-        # Game state:
-        self.camera = Camera(renderer=self.renderer, 
-                             position=glm.vec3(0, 0, 5), 
-                             aspect=self.ctx.aspect_ratio)
-
+        self.scene = self._create_test_scene()
         self.canvas.request_draw(self.gameloop)
     
     def handle_input(self) -> None:
@@ -25,10 +21,21 @@ class GameEngine:
 
         # Game-logic updates here...
 
-        self.renderer.render(scene=...)
+        self.renderer.render(scene=self.scene)
 
         self.canvas.request_draw()
 
     def run(self):
         loop.run()
-    
+
+    def _create_test_scene(self) -> Scene:
+        camera = Camera(renderer=self.renderer, 
+                        position=glm.vec3(0, 0, 5), 
+                        aspect=self.ctx.aspect_ratio)
+
+        scene = Scene(camera)
+
+        # Add some objects to the scene:
+        ...
+        
+        return scene
