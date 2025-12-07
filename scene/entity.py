@@ -60,3 +60,8 @@ class Entity:
                 ),
             ],
         )
+
+    def draw(self, render_pass: wgpu.GPURenderPassEncoder) -> None:
+        render_pass.set_bind_group(1, self.bind_group, [], 0, 99)
+        render_pass.set_vertex_buffer(0, self.mesh.vertex_buffer)
+        render_pass.draw(self.mesh.vertex_count)
